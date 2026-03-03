@@ -1,0 +1,1740 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>mdnit game</title>
+  <style>
+    :root{
+      --bg:#0f1113;
+      --panel:#171a1d;
+      --panel2:#121416;
+      --line:#2a2f33;
+      --green:#2cff7a;
+      --green2:#13d864;
+      --text:#e8f0ea;
+      --muted:#9aa6a0;
+      --red:#ff3b3b;
+      --yellow:#ffd166;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      background: radial-gradient(1200px 700px at 50% -10%, #1d2320 0%, var(--bg) 55%, #0a0b0c 100%);
+      color:var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      overflow-x:hidden;
+    }
+    .top{
+      position:sticky; top:0; z-index:20;
+      background:rgba(15,17,19,.78);
+      backdrop-filter: blur(10px);
+      border-bottom:1px solid rgba(42,47,51,.6);
+      padding:12px 12px 10px;
+    }
+    .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+    .brand{
+      font-weight:1000; letter-spacing:.6px;
+      color:var(--green); font-size:16px; text-transform:lowercase;
+    }
+    .pill{
+      display:flex; align-items:center; gap:10px;
+      background:rgba(23,26,29,.88);
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:9px 12px;
+      box-shadow:0 10px 30px rgba(0,0,0,.25);
+    }
+    .label{color:var(--muted); font-size:12px}
+    .val{font-weight:1000; color:var(--green)}
+    .muted{color:var(--muted)}
+    .tabs{display:flex; gap:8px; flex-wrap:wrap; margin-top:10px}
+    .tab{
+      border:1px solid var(--line);
+      background: rgba(18,20,22,.75);
+      color:var(--text);
+      padding:9px 12px;
+      border-radius:999px;
+      font-weight:900;
+      cursor:pointer;
+      user-select:none;
+    }
+    .tab.active{
+      background: linear-gradient(180deg, rgba(44,255,122,.25), rgba(19,216,100,.10));
+      border-color: rgba(44,255,122,.6);
+      color: var(--green);
+    }
+    .wrap{padding:14px 12px 48px; display:flex; justify-content:center}
+    .card{
+      width:min(820px, 100%);
+      background: rgba(23,26,29,.92);
+      border:1px solid var(--line);
+      border-radius:22px;
+      padding:14px;
+      box-shadow:0 18px 50px rgba(0,0,0,.35);
+    }
+    h2{margin:6px 6px 2px; font-size:18px}
+    p{margin:6px 6px 12px; color:var(--muted); font-size:13px; line-height:1.45}
+    .grid2{display:grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap:10px}
+    .grid3{display:grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap:10px}
+    .btn{
+      border:1px solid var(--line);
+      background: var(--panel2);
+      color:var(--text);
+      padding:12px 12px;
+      border-radius:16px;
+      font-weight:1000;
+      cursor:pointer;
+      user-select:none;
+      text-align:center;
+    }
+    .btn:active{transform: translateY(1px)}
+    .btn.green{
+      border-color: rgba(44,255,122,.55);
+      background: linear-gradient(180deg, rgba(44,255,122,.25), rgba(19,216,100,.08));
+      color: var(--green);
+    }
+    .btn.red{
+      border-color: rgba(255,59,59,.55);
+      background: linear-gradient(180deg, rgba(255,59,59,.18), rgba(255,59,59,.06));
+      color: var(--red);
+    }
+    .btn.yellow{
+      border-color: rgba(255,209,102,.55);
+      background: linear-gradient(180deg, rgba(255,209,102,.18), rgba(255,209,102,.06));
+      color: var(--yellow);
+    }
+    .btn:disabled{opacity:.45; cursor:not-allowed; transform:none}
+    .field{
+      width:100%;
+      border:1px solid var(--line);
+      background: rgba(18,20,22,.6);
+      color:var(--text);
+      padding:12px 12px;
+      border-radius:16px;
+      font-weight:900;
+      outline:none;
+    }
+    .tiny{font-size:12px}
+    .divider{height:1px; background: rgba(42,47,51,.7); margin:12px 0}
+    .hudline{display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin:10px 6px}
+    .badge{
+      display:inline-flex; gap:8px; align-items:center;
+      padding:8px 10px; border:1px solid var(--line);
+      border-radius:14px; background: rgba(18,20,22,.55);
+      font-weight:1000;
+    }
+    .badge b{color:var(--green)}
+    .subtle{opacity:.9}
+
+    /* Overlay WIN/LOSE */
+    .overlay{
+      position:fixed; inset:0; z-index:9999;
+      background: rgba(0,0,0,.55);
+      backdrop-filter: blur(7px);
+      display:flex; align-items:center; justify-content:center;
+    }
+    .overlayBox{
+      width:min(560px, 92vw);
+      border-radius:28px;
+      padding:26px 18px;
+      text-align:center;
+      border:2px solid var(--green);
+      color: var(--green);
+      background: rgba(12,18,14,.85);
+      box-shadow:0 30px 90px rgba(0,0,0,.55);
+    }
+    .overlayBox.lose{
+      border-color: var(--red);
+      color: var(--red);
+      background: rgba(25,10,10,.85);
+    }
+    .overlayTitle{
+      font-size:56px;
+      font-weight:1000;
+      letter-spacing:2px;
+      margin-bottom:10px;
+    }
+    .overlayMsg{color:var(--muted); font-weight:900}
+    .hidden{display:none !important}
+
+    /* Clicker floating +$ */
+    .floatPop{
+      position:absolute;
+      font-weight:1000;
+      color: var(--green);
+      pointer-events:none;
+      transform: translate(-50%, -50%);
+      text-shadow: 0 10px 24px rgba(0,0,0,.55);
+      animation: popUp .62s ease-out forwards;
+      will-change: transform, opacity;
+    }
+    @keyframes popUp{
+      0%{opacity:0; transform: translate(-50%, -30%) scale(.9)}
+      12%{opacity:1; transform: translate(-50%, -55%) scale(1.05)}
+      100%{opacity:0; transform: translate(-50%, -95%) scale(1.02)}
+    }
+
+    /* Mines grid */
+    .minesGrid{
+      display:grid;
+      gap:8px;
+      margin-top:10px;
+      user-select:none;
+    }
+    .cell{
+      border:1px solid var(--line);
+      background: rgba(18,20,22,.6);
+      border-radius:14px;
+      padding:0;
+      height:44px;
+      display:flex; align-items:center; justify-content:center;
+      font-weight:1000;
+      cursor:pointer;
+    }
+    .cell.safe{border-color: rgba(44,255,122,.5)}
+    .cell.bomb{border-color: rgba(255,59,59,.55)}
+    .cell.revealed{cursor:not-allowed; opacity:.95}
+    .cell:active{transform: translateY(1px)}
+
+    /* Chicken road */
+    .road{
+      position:relative;
+      border:1px solid var(--line);
+      background: linear-gradient(180deg, rgba(18,20,22,.75), rgba(12,13,14,.85));
+      border-radius:18px;
+      padding:12px;
+      overflow:hidden;
+      margin-top:10px;
+    }
+    .roadBar{
+      height:10px;
+      border-radius:999px;
+      background: rgba(255,255,255,.08);
+      border:1px solid rgba(42,47,51,.7);
+      overflow:hidden;
+    }
+    .roadFill{
+      height:100%;
+      width:0%;
+      background: linear-gradient(90deg, rgba(44,255,122,.85), rgba(19,216,100,.35));
+    }
+    .chicken{
+      margin-top:10px;
+      display:flex; align-items:center; gap:10px;
+      font-weight:1000;
+    }
+    .emoji{
+      font-size:22px;
+      filter: drop-shadow(0 10px 15px rgba(0,0,0,.35));
+    }
+
+    /* Penalty */
+    .goalWrap{
+      margin-top:10px;
+      border:1px solid var(--line);
+      background: rgba(18,20,22,.6);
+      border-radius:18px;
+      padding:12px;
+      overflow:hidden;
+    }
+    .goal{
+      position:relative;
+      width:100%;
+      aspect-ratio: 16/10;
+      border:2px solid rgba(255,255,255,.22);
+      border-radius:12px;
+      background: radial-gradient(500px 220px at 50% 10%, rgba(255,255,255,.10), rgba(0,0,0,.0)),
+                  linear-gradient(180deg, rgba(255,255,255,.05), rgba(0,0,0,.0));
+      overflow:hidden;
+    }
+    .goalGrid{
+      position:absolute; inset:0;
+      display:grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(3, 1fr);
+      gap:8px;
+      padding:10px;
+    }
+    .zone{
+      border:1px solid rgba(255,255,255,.14);
+      border-radius:10px;
+      background: rgba(0,0,0,.12);
+      cursor:pointer;
+      position:relative;
+      overflow:hidden;
+    }
+    .zone:active{transform: translateY(1px)}
+    .keeper{
+      position:absolute;
+      left:50%; top:58%;
+      transform: translate(-50%, -50%);
+      font-size:30px;
+      transition: transform .35s ease;
+      filter: drop-shadow(0 12px 18px rgba(0,0,0,.45));
+      pointer-events:none;
+    }
+    .ball{
+      position:absolute;
+      left:50%; top:82%;
+      transform: translate(-50%, -50%);
+      font-size:22px;
+      transition: transform .55s ease;
+      filter: drop-shadow(0 12px 18px rgba(0,0,0,.45));
+      pointer-events:none;
+    }
+    .statusLine{display:flex; gap:10px; flex-wrap:wrap; margin:10px 6px; align-items:center}
+    .note{font-size:12px; color:var(--muted); margin:8px 6px 0}
+
+    /* Blackjack */
+    .cardsRow{display:flex; gap:8px; flex-wrap:wrap; margin:8px 6px}
+    .cardChip{
+      border:1px solid rgba(42,47,51,.75);
+      background: rgba(18,20,22,.6);
+      border-radius:12px;
+      padding:8px 10px;
+      font-weight:1000;
+      min-width: 44px;
+      text-align:center;
+    }
+    .handBox{
+      border:1px solid rgba(42,47,51,.75);
+      background: rgba(18,20,22,.45);
+      border-radius:18px;
+      padding:12px;
+      margin-top:10px;
+    }
+    .handHeader{
+      display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; align-items:center;
+      margin:0 6px 6px;
+    }
+    .handTitle{font-weight:1000}
+    .handMeta{color:var(--muted); font-weight:900; font-size:12px}
+    .handActive{outline:2px solid rgba(44,255,122,.35)}
+  </style>
+</head>
+<body>
+  <div class="top">
+    <div class="row">
+      <div class="brand">mdnit game</div>
+      <div class="pill">
+        <span class="label">Balance</span>
+        <span id="balance" class="val">$0</span>
+      </div>
+      <div class="pill">
+        <span class="label">Sound</span>
+        <span id="soundState" class="val">ON</span>
+      </div>
+      <button id="soundBtn" class="tab" style="margin-left:auto">Toggle Sound</button>
+      <button id="resetAllBtn" class="tab">Reset All</button>
+    </div>
+
+    <div class="tabs" id="tabs">
+      <button class="tab active" data-screen="clicker">Clicker</button>
+      <button class="tab" data-screen="chicken">Chicken Road</button>
+      <button class="tab" data-screen="blackjack">Blackjack</button>
+      <button class="tab" data-screen="mines">Mines</button>
+      <button class="tab" data-screen="dice">Dice</button>
+      <button class="tab" data-screen="penalty">Penalty</button>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <div class="card">
+
+      <!-- CLICKER -->
+      <section id="screen-clicker">
+        <h2>Clicker (Main Money)</h2>
+        <p>Tap to earn dollars. Upgrade to get more per click.</p>
+
+        <div class="hudline">
+          <span class="badge">Per Click: <b id="clkPerClick">$1</b></span>
+          <span class="badge">Upgrade Cost: <b id="clkUpCost">$25</b></span>
+          <span class="badge">Level: <b id="clkLevel">1</b></span>
+        </div>
+
+        <div style="position:relative">
+          <button id="clkEarnBtn" class="btn green" style="width:100%; padding:18px; font-size:22px">
+            TAP TO EARN
+          </button>
+        </div>
+
+        <div class="grid2" style="margin-top:10px">
+          <button id="clkUpgradeBtn" class="btn" disabled>UPGRADE</button>
+          <button id="clkResetBtn" class="btn yellow">RESET CLICKER</button>
+        </div>
+
+        <div class="note">Tip: Every tap spawns a green <b>+$</b> pop, with sound & vibration.</div>
+      </section>
+
+      <!-- CHICKEN -->
+      <section id="screen-chicken" class="hidden">
+        <h2>Chicken Road</h2>
+        <p>Bet, then tap <b>STEP</b>. Each step increases the multiplier, but the crash chance rises. Cash out anytime.</p>
+
+        <div class="grid2">
+          <input id="chBet" class="field" type="number" min="1" step="1" value="10" placeholder="Bet ($)"/>
+          <button id="chStartBtn" class="btn green">START</button>
+        </div>
+
+        <div class="statusLine">
+          <span class="badge">Step: <b id="chStep">0</b>/50</span>
+          <span class="badge">Multiplier: <b id="chMult">x1.00</b></span>
+          <span class="badge">Crash Chance: <b id="chChance">0%</b></span>
+          <span class="badge">Bet: <b id="chBetShow">$0</b></span>
+        </div>
+
+        <div class="road">
+          <div class="roadBar"><div id="chFill" class="roadFill"></div></div>
+          <div class="chicken">
+            <span class="emoji" id="chEmoji">🐔</span>
+            <span id="chText">Not started.</span>
+          </div>
+        </div>
+
+        <div class="grid2" style="margin-top:10px">
+          <button id="chStepBtn" class="btn" disabled>STEP</button>
+          <button id="chCashBtn" class="btn yellow" disabled>CASH OUT</button>
+        </div>
+
+        <div class="note">Crash sound: <b>car whoosh</b>. Win/Lose overlays included.</div>
+      </section>
+
+      <!-- BLACKJACK -->
+      <section id="screen-blackjack" class="hidden">
+        <h2>Blackjack</h2>
+        <p>Classic blackjack with <b>Split</b> and <b>Double</b>. Dealer stands on 17. Blackjack pays <b>1.5x</b>.</p>
+
+        <div class="grid2">
+          <input id="bjBet" class="field" type="number" min="1" step="1" value="10" placeholder="Bet ($)"/>
+          <button id="bjDealBtn" class="btn green">DEAL</button>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="handBox">
+          <div class="handHeader">
+            <div class="handTitle">Dealer</div>
+            <div class="handMeta">Total: <span id="bjDealerTotal">0</span></div>
+          </div>
+          <div id="bjDealerCards" class="cardsRow"></div>
+        </div>
+
+        <div id="bjHandsWrap"></div>
+
+        <div class="grid3" style="margin-top:12px">
+          <button id="bjHitBtn" class="btn" disabled>HIT</button>
+          <button id="bjStandBtn" class="btn" disabled>STAND</button>
+          <button id="bjDoubleBtn" class="btn yellow" disabled>DOUBLE</button>
+        </div>
+        <div class="grid2" style="margin-top:10px">
+          <button id="bjSplitBtn" class="btn green" disabled>SPLIT</button>
+          <button id="bjNewRoundBtn" class="btn" disabled>NEW ROUND</button>
+        </div>
+
+        <div class="note">Split is allowed once (same rank). Double only on first action of a hand.</div>
+      </section>
+
+      <!-- MINES -->
+      <section id="screen-mines" class="hidden">
+        <h2>Mines</h2>
+        <p>Choose grid size and bomb count. More bombs = higher multiplier. Bigger grid = lower multiplier. Cash out anytime.</p>
+
+        <div class="grid3">
+          <select id="mGrid" class="field">
+            <option value="3">3×3</option>
+            <option value="5" selected>5×5</option>
+            <option value="9">9×9</option>
+          </select>
+          <input id="mBombs" class="field" type="number" min="1" step="1" value="5" placeholder="Bombs"/>
+          <input id="mBet" class="field" type="number" min="1" step="1" value="10" placeholder="Bet ($)"/>
+        </div>
+
+        <div class="grid2" style="margin-top:10px">
+          <button id="mStartBtn" class="btn green">START</button>
+          <button id="mCashBtn" class="btn yellow" disabled>CASH OUT</button>
+        </div>
+
+        <div class="statusLine">
+          <span class="badge">Opened: <b id="mOpened">0</b></span>
+          <span class="badge">Multiplier: <b id="mMult">x1.00</b></span>
+          <span class="badge">Potential: <b id="mPotential">$0</b></span>
+        </div>
+
+        <div id="mGridEl" class="minesGrid"></div>
+
+        <div class="note">Gem sound: sparkle. Bomb sound: explosion pop.</div>
+      </section>
+
+      <!-- DICE -->
+      <section id="screen-dice" class="hidden">
+        <h2>Dice</h2>
+        <p>Pick your outcome, roll two dice. Equal 7 has a much higher multiplier.</p>
+
+        <div class="grid2">
+          <input id="dBet" class="field" type="number" min="1" step="1" value="10" placeholder="Bet ($)"/>
+          <select id="dPick" class="field">
+            <option value="eq7">Equal 7 (x5.5)</option>
+            <option value="lt7">Below 7 (x2.2)</option>
+            <option value="gt7">Above 7 (x2.2)</option>
+          </select>
+        </div>
+
+        <div class="grid2" style="margin-top:10px">
+          <button id="dRollBtn" class="btn green">ROLL</button>
+          <div class="pill" style="justify-content:center; border-radius:16px">
+            <span class="label">Result</span>
+            <span id="dRes" class="val">—</span>
+          </div>
+        </div>
+
+        <div class="note">Pure random dice: 1–6 each die.</div>
+      </section>
+
+      <!-- PENALTY -->
+      <section id="screen-penalty" class="hidden">
+        <h2>Penalty</h2>
+        <p>Tap a target zone to shoot. The game waits <b>2 seconds</b>, then the keeper dives. Save chance starts at <b>20%</b> and increases by <b>10%</b> each successful goal. Multipliers double: x2, x4, x8...</p>
+
+        <div class="grid2">
+          <input id="pBet" class="field" type="number" min="1" step="1" value="10" placeholder="Bet ($)"/>
+          <button id="pStartBtn" class="btn green">START</button>
+        </div>
+
+        <div class="statusLine">
+          <span class="badge">Goals: <b id="pGoals">0</b></span>
+          <span class="badge">Multiplier: <b id="pMult">x1.00</b></span>
+          <span class="badge">Save Chance: <b id="pChance">20%</b></span>
+          <span class="badge">Bet: <b id="pBetShow">$0</b></span>
+        </div>
+
+        <div class="goalWrap">
+          <div class="goal" id="goalEl">
+            <div class="goalGrid" id="goalGrid"></div>
+            <div class="keeper" id="keeper">🧤</div>
+            <div class="ball" id="ball">⚽</div>
+          </div>
+        </div>
+
+        <div class="grid2" style="margin-top:10px">
+          <button id="pCashBtn" class="btn yellow" disabled>CASH OUT</button>
+          <button id="pResetBtn" class="btn" disabled>RESET ROUND</button>
+        </div>
+
+        <div class="note">Goal sound: cheering crowd. Save sound: disappointed crowd.</div>
+      </section>
+
+    </div>
+  </div>
+
+  <!-- WIN/LOSE overlay -->
+  <div id="overlay" class="overlay hidden">
+    <div id="overlayBox" class="overlayBox">
+      <div id="overlayTitle" class="overlayTitle">WIN</div>
+      <div id="overlayMsg" class="overlayMsg">—</div>
+    </div>
+  </div>
+
+  <script>
+    /***********************
+     * GLOBAL STATE
+     ***********************/
+    const $ = (id)=>document.getElementById(id);
+    const STORE_KEY = "mdnit_game_v1_singlefile";
+    let state = loadState() || {
+      balance: 0,
+      soundOn: true,
+
+      // clicker
+      clicker: { perClick: 1, level: 1, upCost: 25 },
+
+      // chicken road
+      chicken: { active:false, bet:0, step:0, mult:1.0 },
+
+      // mines
+      mines: { active:false, bet:0, size:5, bombs:5, opened:0, mult:1.0, bombSet:[], revealed:Set() },
+
+      // dice (no persistent needed)
+
+      // penalty
+      penalty: { active:false, bet:0, goals:0, mult:1.0, busy:false },
+
+      // blackjack
+      bj: { active:false }
+    };
+
+    function loadState(){
+      try{
+        const raw = localStorage.getItem(STORE_KEY);
+        if(!raw) return null;
+        const parsed = JSON.parse(raw);
+        // fix sets
+        if(parsed?.mines?.revealed && !(parsed.mines.revealed instanceof Set)){
+          // ignore persisted revealed set (better to reset mines round)
+          if(parsed.mines){ parsed.mines.active=false; parsed.mines.revealed = []; parsed.mines.bombSet=[]; parsed.mines.opened=0; parsed.mines.mult=1.0; parsed.mines.bet=0; }
+        }
+        return parsed;
+      }catch{ return null; }
+    }
+    function saveState(){
+      try{
+        // don't persist mines revealed set (reset mines session)
+        const clone = structuredClone(state);
+        if(clone.mines){
+          clone.mines.active = false;
+          clone.mines.bombSet = [];
+          clone.mines.revealed = [];
+          clone.mines.opened = 0;
+          clone.mines.mult = 1.0;
+          clone.mines.bet = 0;
+        }
+        clone.bj = { active:false };
+        localStorage.setItem(STORE_KEY, JSON.stringify(clone));
+      }catch{}
+    }
+
+    function formatMoney(n){ return "$" + Math.floor(n); }
+
+    function setBalance(newBal){
+      state.balance = Math.max(0, newBal);
+      $("balance").textContent = formatMoney(state.balance);
+      saveState();
+    }
+
+    /***********************
+     * SOUND ENGINE (WebAudio)
+     * (No external files)
+     ***********************/
+    let audioCtx = null;
+    function ensureAudio(){
+      if(!audioCtx){
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }
+    function now(){ return audioCtx ? audioCtx.currentTime : 0; }
+
+    function masterBeep(freq=440, dur=0.06, type="sine", gain=0.06){
+      if(!state.soundOn) return;
+      try{
+        ensureAudio();
+        const t0 = now();
+        const osc = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, t0);
+        g.gain.setValueAtTime(gain, t0);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+        osc.connect(g); g.connect(audioCtx.destination);
+        osc.start(t0); osc.stop(t0 + dur);
+      }catch{}
+    }
+
+    function noiseBurst(dur=0.2, gain=0.08, hp=400){
+      if(!state.soundOn) return;
+      try{
+        ensureAudio();
+        const t0 = now();
+        const bufferSize = Math.floor(audioCtx.sampleRate * dur);
+        const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for(let i=0;i<bufferSize;i++){
+          // decaying noise
+          const decay = 1 - (i/bufferSize);
+          data[i] = (Math.random()*2-1) * decay;
+        }
+        const src = audioCtx.createBufferSource();
+        src.buffer = buffer;
+
+        const filter = audioCtx.createBiquadFilter();
+        filter.type = "highpass";
+        filter.frequency.setValueAtTime(hp, t0);
+
+        const g = audioCtx.createGain();
+        g.gain.setValueAtTime(gain, t0);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+
+        src.connect(filter); filter.connect(g); g.connect(audioCtx.destination);
+        src.start(t0);
+      }catch{}
+    }
+
+    // Generic UI click sound
+    function sClick(){ masterBeep(620, 0.05, "square", 0.05); }
+
+    // Global win/lose stingers
+    function sWin(){
+      if(!state.soundOn) return;
+      masterBeep(880, 0.08, "sine", 0.06);
+      setTimeout(()=>masterBeep(1175, 0.10, "sine", 0.06), 90);
+      setTimeout(()=>masterBeep(1568, 0.12, "sine", 0.06), 190);
+    }
+    function sLose(){
+      if(!state.soundOn) return;
+      masterBeep(220, 0.12, "sawtooth", 0.06);
+      setTimeout(()=>masterBeep(180, 0.14, "sawtooth", 0.06), 120);
+    }
+
+    // Mines: gem sparkle + bomb explosion
+    function sGem(){
+      if(!state.soundOn) return;
+      masterBeep(1200, 0.05, "sine", 0.05);
+      setTimeout(()=>masterBeep(1600, 0.06, "sine", 0.04), 40);
+      setTimeout(()=>masterBeep(2000, 0.07, "sine", 0.035), 85);
+    }
+    function sExplosion(){
+      if(!state.soundOn) return;
+      noiseBurst(0.22, 0.10, 200);
+      masterBeep(90, 0.10, "sawtooth", 0.05);
+    }
+
+    // Chicken: car whoosh
+    function sCar(){
+      if(!state.soundOn) return;
+      try{
+        ensureAudio();
+        const t0 = now();
+        noiseBurst(0.25, 0.05, 500);
+
+        const osc = audioCtx.createOscillator();
+        const g = audioCtx.createGain();
+        osc.type = "sawtooth";
+        osc.frequency.setValueAtTime(220, t0);
+        osc.frequency.exponentialRampToValueAtTime(80, t0 + 0.25);
+        g.gain.setValueAtTime(0.05, t0);
+        g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.25);
+        osc.connect(g); g.connect(audioCtx.destination);
+        osc.start(t0); osc.stop(t0 + 0.26);
+      }catch{}
+    }
+
+    // Penalty: crowd cheer / boo
+    function sCheer(){
+      if(!state.soundOn) return;
+      noiseBurst(0.45, 0.07, 300);
+      masterBeep(523, 0.10, "sine", 0.05);
+      setTimeout(()=>masterBeep(659, 0.12, "sine", 0.05), 110);
+      setTimeout(()=>masterBeep(784, 0.14, "sine", 0.05), 240);
+    }
+    function sBoo(){
+      if(!state.soundOn) return;
+      noiseBurst(0.50, 0.06, 120);
+      masterBeep(130, 0.28, "sawtooth", 0.05);
+      setTimeout(()=>masterBeep(110, 0.28, "sawtooth", 0.04), 120);
+    }
+
+    function vibrate(ms=25){
+      if(navigator.vibrate) navigator.vibrate(ms);
+    }
+
+    /***********************
+     * OVERLAY
+     ***********************/
+    const overlay = $("overlay");
+    const overlayBox = $("overlayBox");
+    const overlayTitle = $("overlayTitle");
+    const overlayMsg = $("overlayMsg");
+
+    function showOverlay(type, msg){
+      overlay.classList.remove("hidden");
+      overlayBox.classList.toggle("lose", type === "lose");
+      overlayTitle.textContent = (type === "lose") ? "LOSE" : "WIN";
+      overlayMsg.textContent = msg || "—";
+      if(type === "lose") sLose(); else sWin();
+      setTimeout(()=>{ overlay.classList.add("hidden"); }, 950);
+    }
+    overlay.addEventListener("click", ()=>{ sClick(); overlay.classList.add("hidden"); });
+
+    /***********************
+     * NAVIGATION
+     ***********************/
+    const screens = ["clicker","chicken","blackjack","mines","dice","penalty"];
+    function showScreen(name){
+      for(const s of screens){
+        const el = $("screen-"+s);
+        el.classList.toggle("hidden", s !== name);
+      }
+      for(const btn of document.querySelectorAll(".tab[data-screen]")){
+        btn.classList.toggle("active", btn.dataset.screen === name);
+      }
+    }
+    $("tabs").addEventListener("click", (e)=>{
+      const btn = e.target.closest(".tab[data-screen]");
+      if(!btn) return;
+      sClick();
+      showScreen(btn.dataset.screen);
+    });
+
+    /***********************
+     * TOP BUTTONS
+     ***********************/
+    function refreshTop(){
+      $("balance").textContent = formatMoney(state.balance);
+      $("soundState").textContent = state.soundOn ? "ON" : "OFF";
+    }
+    $("soundBtn").addEventListener("click", ()=>{
+      sClick();
+      state.soundOn = !state.soundOn;
+      refreshTop();
+      saveState();
+    });
+    $("resetAllBtn").addEventListener("click", ()=>{
+      sClick();
+      if(!confirm("Reset everything?")) return;
+      localStorage.removeItem(STORE_KEY);
+      location.reload();
+    });
+
+    /***********************
+     * CLICKER
+     ***********************/
+    const clkPerClick = $("clkPerClick");
+    const clkUpCost = $("clkUpCost");
+    const clkLevel = $("clkLevel");
+    const clkEarnBtn = $("clkEarnBtn");
+    const clkUpgradeBtn = $("clkUpgradeBtn");
+    const clkResetBtn = $("clkResetBtn");
+
+    function updateClickerUI(){
+      clkPerClick.textContent = formatMoney(state.clicker.perClick);
+      clkUpCost.textContent = formatMoney(state.clicker.upCost);
+      clkLevel.textContent = String(state.clicker.level);
+      clkUpgradeBtn.disabled = state.balance < state.clicker.upCost;
+      refreshTop();
+    }
+
+    function spawnMoneyPop(anchorEl, amount){
+      const rect = anchorEl.getBoundingClientRect();
+      const pop = document.createElement("div");
+      pop.className = "floatPop";
+      pop.textContent = `+${amount}$`;
+      // random slight offset around button center
+      const cx = rect.left + rect.width/2 + (Math.random()*24 - 12);
+      const cy = rect.top + rect.height/2 + (Math.random()*18 - 9);
+      pop.style.left = cx + "px";
+      pop.style.top = cy + "px";
+      pop.style.fontSize = (18 + Math.random()*6) + "px";
+      document.body.appendChild(pop);
+      setTimeout(()=>pop.remove(), 700);
+    }
+
+    clkEarnBtn.addEventListener("click", ()=>{
+      sClick();
+      vibrate(25);
+
+      const amt = state.clicker.perClick;
+      setBalance(state.balance + amt);
+      spawnMoneyPop(clkEarnBtn, amt);
+      updateClickerUI();
+    });
+
+    clkUpgradeBtn.addEventListener("click", ()=>{
+      sClick();
+      if(state.balance < state.clicker.upCost) return;
+      setBalance(state.balance - state.clicker.upCost);
+      state.clicker.level += 1;
+      state.clicker.perClick += 1; // 1->2->3...
+      state.clicker.upCost = Math.floor(state.clicker.upCost * 1.6 + 10);
+      saveState();
+      updateClickerUI();
+    });
+
+    clkResetBtn.addEventListener("click", ()=>{
+      sClick();
+      if(!confirm("Reset clicker progression?")) return;
+      state.clicker = { perClick: 1, level: 1, upCost: 25 };
+      saveState();
+      updateClickerUI();
+    });
+
+    /***********************
+     * CHICKEN ROAD
+     ***********************/
+    const chBet = $("chBet");
+    const chStartBtn = $("chStartBtn");
+    const chStepBtn = $("chStepBtn");
+    const chCashBtn = $("chCashBtn");
+    const chStep = $("chStep");
+    const chMult = $("chMult");
+    const chChance = $("chChance");
+    const chBetShow = $("chBetShow");
+    const chFill = $("chFill");
+    const chText = $("chText");
+    const chEmoji = $("chEmoji");
+
+    function chickenCrashChance(step){
+      // step starts at 1
+      let p = 0.10; // 10% at step 1
+      if(step <= 10){
+        p = 0.10 + (step-1)*0.01;
+      }else if(step <= 40){
+        p = 0.10 + 9*0.01 + (step-10)*0.015;
+      }else{
+        p = 0.10 + 9*0.01 + 30*0.015 + (step-40)*0.02;
+      }
+      return Math.min(0.95, p);
+    }
+
+    function chickenMultiplier(step){
+      // step 1 => 1.50x, step 50 => ~7.38x (linear)
+      return 1.50 + (step-1)*0.12;
+    }
+
+    function updateChickenUI(){
+      chStep.textContent = state.chicken.step;
+      chMult.textContent = "x" + state.chicken.mult.toFixed(2);
+      const p = state.chicken.step>0 ? chickenCrashChance(state.chicken.step) : 0;
+      chChance.textContent = Math.round(p*100) + "%";
+      chBetShow.textContent = formatMoney(state.chicken.bet || 0);
+      chFill.style.width = (state.chicken.step/50*100) + "%";
+
+      chStepBtn.disabled = !state.chicken.active;
+      chCashBtn.disabled = !state.chicken.active || state.chicken.step === 0;
+      saveState();
+      refreshTop();
+    }
+
+    chStartBtn.addEventListener("click", ()=>{
+      sClick();
+      const bet = Math.floor(Number(chBet.value || 0));
+      if(bet <= 0) return alert("Enter a valid bet.");
+      if(state.balance < bet) return alert("Not enough balance.");
+      // start
+      setBalance(state.balance - bet);
+      state.chicken = { active:true, bet, step:0, mult:1.0 };
+      chEmoji.textContent = "🐔";
+      chText.textContent = "Round started. Tap STEP!";
+      updateChickenUI();
+    });
+
+    chStepBtn.addEventListener("click", ()=>{
+      sClick();
+      if(!state.chicken.active) return;
+
+      const nextStep = state.chicken.step + 1;
+      if(nextStep > 50) return;
+
+      const p = chickenCrashChance(nextStep);
+      // decide crash
+      const crashed = Math.random() < p;
+      state.chicken.step = nextStep;
+      state.chicken.mult = chickenMultiplier(nextStep);
+
+      if(crashed){
+        // lose
+        sCar();
+        chEmoji.textContent = "💥🐔";
+        chText.textContent = `CRASHED at step ${nextStep}!`;
+        const lost = state.chicken.bet;
+        state.chicken.active = false;
+        updateChickenUI();
+        showOverlay("lose", `Chicken Road: Lost ${formatMoney(lost)}`);
+        return;
+      }
+
+      chEmoji.textContent = "🐔";
+      chText.textContent = `Safe! Step ${nextStep}. Multiplier is now x${state.chicken.mult.toFixed(2)}.`;
+      updateChickenUI();
+      if(nextStep === 50){
+        // reached max, auto cashout
+        const win = Math.floor(state.chicken.bet * state.chicken.mult);
+        setBalance(state.balance + win);
+        state.chicken.active = false;
+        updateChickenUI();
+        showOverlay("win", `Chicken Road: +${formatMoney(win)}`);
+      }
+    });
+
+    chCashBtn.addEventListener("click", ()=>{
+      sClick();
+      if(!state.chicken.active || state.chicken.step === 0) return;
+      const win = Math.floor(state.chicken.bet * state.chicken.mult);
+      setBalance(state.balance + win);
+      state.chicken.active = false;
+      chText.textContent = `Cashed out at step ${state.chicken.step}.`;
+      updateChickenUI();
+      showOverlay("win", `Chicken Road: +${formatMoney(win)}`);
+    });
+
+    /***********************
+     * DICE
+     ***********************/
+    const dBet = $("dBet");
+    const dPick = $("dPick");
+    const dRollBtn = $("dRollBtn");
+    const dRes = $("dRes");
+
+    dRollBtn.addEventListener("click", ()=>{
+      sClick();
+      const bet = Math.floor(Number(dBet.value || 0));
+      if(bet <= 0) return alert("Enter a valid bet.");
+      if(state.balance < bet) return alert("Not enough balance.");
+      setBalance(state.balance - bet);
+
+      const a = 1 + Math.floor(Math.random()*6);
+      const b = 1 + Math.floor(Math.random()*6);
+      const sum = a + b;
+
+      dRes.textContent = `${a} + ${b} = ${sum}`;
+
+      const pick = dPick.value;
+      let won = false;
+      let mult = 0;
+
+      if(pick === "eq7"){ won = (sum === 7); mult = 5.5; }
+      if(pick === "lt7"){ won = (sum < 7);  mult = 2.2; }
+      if(pick === "gt7"){ won = (sum > 7);  mult = 2.2; }
+
+      if(won){
+        const payout = Math.floor(bet * mult);
+        setBalance(state.balance + payout);
+        showOverlay("win", `Dice: +${formatMoney(payout)} (x${mult})`);
+      }else{
+        showOverlay("lose", `Dice: Lost ${formatMoney(bet)}`);
+      }
+    });
+
+    /***********************
+     * MINES
+     ***********************/
+    const mGrid = $("mGrid");
+    const mBombs = $("mBombs");
+    const mBet = $("mBet");
+    const mStartBtn = $("mStartBtn");
+    const mCashBtn = $("mCashBtn");
+    const mOpened = $("mOpened");
+    const mMult = $("mMult");
+    const mPotential = $("mPotential");
+    const mGridEl = $("mGridEl");
+
+    let minesRuntime = {
+      active:false,
+      bet:0,
+      size:5,
+      bombs:5,
+      opened:0,
+      mult:1.0,
+      bombSet: new Set(),
+      revealed: new Set()
+    };
+
+    function minesSizeFactor(size){
+      if(size === 3) return 1.25;
+      if(size === 5) return 1.00;
+      return 0.75; // 9
+    }
+
+    function minesComputeMult(opened, bombs, cells, size){
+      // depends on bombs + grid size + opened gems
+      const sf = minesSizeFactor(size);
+      const density = bombs / cells; // 0..1
+      // base increase per gem
+      const perGem = (0.85 * density * 3.2 * sf) + 0.02;
+      const mult = 1 + opened * perGem;
+      return Math.max(1.0, mult);
+    }
+
+    function minesUpdateUI(){
+      mOpened.textContent = minesRuntime.opened;
+      mMult.textContent = "x" + minesRuntime.mult.toFixed(2);
+      const potential = Math.floor(minesRuntime.bet * minesRuntime.mult);
+      mPotential.textContent = formatMoney(potential);
+
+      mCashBtn.disabled = !minesRuntime.active || minesRuntime.opened === 0;
+      saveState();
+      refreshTop();
+    }
+
+    function minesBuildGrid(size){
+      mGridEl.innerHTML = "";
+      mGridEl.style.gridTemplateColumns = `repeat(${size}, minmax(0, 1fr))`;
+      // keep reasonable height
+      const cellCount = size*size;
+      for(let i=0;i<cellCount;i++){
+        const btn = document.createElement("button");
+        btn.className = "cell";
+        btn.type = "button";
+        btn.dataset.idx = String(i);
+        btn.textContent = "";
+        btn.addEventListener("click", ()=> minesPickCell(i, btn));
+        mGridEl.appendChild(btn);
+      }
+    }
+
+    function minesRandomBombs(cells, bombs){
+      const set = new Set();
+      while(set.size < bombs){
+        set.add(Math.floor(Math.random()*cells));
+      }
+      return set;
+    }
+
+    function minesStart(){
+      sClick();
+      const size = Number(mGrid.value);
+      const cells = size*size;
+      let bombs = Math.floor(Number(mBombs.value || 0));
+      const bet = Math.floor(Number(mBet.value || 0));
+      if(bet <= 0) return alert("Enter a valid bet.");
+      if(state.balance < bet) return alert("Not enough balance.");
+      if(bombs <= 0) return alert("Bombs must be at least 1.");
+      if(bombs >= cells) return alert("Bombs must be less than total cells.");
+
+      // start
+      setBalance(state.balance - bet);
+      minesRuntime.active = true;
+      minesRuntime.bet = bet;
+      minesRuntime.size = size;
+      minesRuntime.bombs = bombs;
+      minesRuntime.opened = 0;
+      minesRuntime.revealed = new Set();
+      minesRuntime.bombSet = minesRandomBombs(cells, bombs);
+      minesRuntime.mult = 1.0;
+
+      minesBuildGrid(size);
+      minesUpdateUI();
+    }
+
+    function minesRevealAll(){
+      const size = minesRuntime.size;
+      const cells = size*size;
+      for(const cellEl of mGridEl.querySelectorAll(".cell")){
+        const idx = Number(cellEl.dataset.idx);
+        if(minesRuntime.revealed.has(idx)) continue;
+        cellEl.classList.add("revealed");
+        if(minesRuntime.bombSet.has(idx)){
+          cellEl.classList.add("bomb");
+          cellEl.textContent = "💣";
+        }else{
+          cellEl.classList.add("safe");
+          cellEl.textContent = "💎";
+        }
+      }
+    }
+
+    function minesPickCell(idx, el){
+      sClick();
+      if(!minesRuntime.active) return;
+      if(minesRuntime.revealed.has(idx)) return;
+
+      vibrate(18);
+
+      minesRuntime.revealed.add(idx);
+      el.classList.add("revealed");
+
+      const size = minesRuntime.size;
+      const cells = size*size;
+
+      if(minesRuntime.bombSet.has(idx)){
+        // lose
+        el.classList.add("bomb");
+        el.textContent = "💣";
+        sExplosion();
+        minesRevealAll();
+        const lost = minesRuntime.bet;
+        minesRuntime.active = false;
+        minesUpdateUI();
+        showOverlay("lose", `Mines: Lost ${formatMoney(lost)}`);
+        return;
+      }
+
+      // safe
+      el.classList.add("safe");
+      el.textContent = "💎";
+      sGem();
+
+      minesRuntime.opened += 1;
+      minesRuntime.mult = minesComputeMult(minesRuntime.opened, minesRuntime.bombs, cells, size);
+      minesUpdateUI();
+
+      // if all safe opened, auto cashout
+      const safeCells = cells - minesRuntime.bombs;
+      if(minesRuntime.opened >= safeCells){
+        const payout = Math.floor(minesRuntime.bet * minesRuntime.mult);
+        setBalance(state.balance + payout);
+        minesRuntime.active = false;
+        minesUpdateUI();
+        showOverlay("win", `Mines: +${formatMoney(payout)}`);
+      }
+    }
+
+    mStartBtn.addEventListener("click", minesStart);
+
+    mCashBtn.addEventListener("click", ()=>{
+      sClick();
+      if(!minesRuntime.active || minesRuntime.opened === 0) return;
+      const payout = Math.floor(minesRuntime.bet * minesRuntime.mult);
+      setBalance(state.balance + payout);
+      minesRuntime.active = false;
+      minesRevealAll();
+      minesUpdateUI();
+      showOverlay("win", `Mines: +${formatMoney(payout)}`);
+    });
+
+    /***********************
+     * PENALTY
+     ***********************/
+    const pBet = $("pBet");
+    const pStartBtn = $("pStartBtn");
+    const pCashBtn = $("pCashBtn");
+    const pResetBtn = $("pResetBtn");
+    const pGoals = $("pGoals");
+    const pMult = $("pMult");
+    const pChance = $("pChance");
+    const pBetShow = $("pBetShow");
+    const goalGrid = $("goalGrid");
+    const keeper = $("keeper");
+    const ball = $("ball");
+
+    let penalty = {
+      active:false,
+      bet:0,
+      goals:0,
+      mult:1.0,
+      busy:false
+    };
+
+    function penaltySaveChance(){
+      // first shot 20%, increases by 10% after each goal
+      const chance = 0.20 + (penalty.goals * 0.10);
+      return Math.min(0.95, chance);
+    }
+    function penaltyMultiplier(){
+      // goals:1 => x2, goals:2=>x4, ...
+      if(penalty.goals <= 0) return 1.0;
+      return Math.pow(2, penalty.goals);
+    }
+
+    function zoneToTransform(i){
+      // 9 zones (0..8), map to keeper/ball positions
+      const col = i % 3; // 0,1,2
+      const row = Math.floor(i / 3); // 0,1,2
+      // x: -1,0,1 ; y: -1,0,1
+      const x = (col - 1) * 85;     // px shift
+      const y = (row - 1) * 55;     // px shift
+      return {x,y};
+    }
+
+    function penaltyResetVisual(){
+      keeper.style.transform = "translate(-50%, -50%)";
+      ball.style.transform   = "translate(-50%, -50%)";
+    }
+
+    function penaltyUpdateUI(){
+      pGoals.textContent = penalty.goals;
+      penalty.mult = penaltyMultiplier();
+      pMult.textContent = "x" + penalty.mult.toFixed(2);
+      pChance.textContent = Math.round(penaltySaveChance()*100) + "%";
+      pBetShow.textContent = formatMoney(penalty.bet || 0);
+
+      pCashBtn.disabled = !penalty.active || penalty.goals === 0 || penalty.busy;
+      pResetBtn.disabled = !penalty.active || penalty.busy;
+
+      saveState();
+      refreshTop();
+    }
+
+    function penaltyBuildZones(){
+      goalGrid.innerHTML = "";
+      for(let i=0;i<9;i++){
+        const z = document.createElement("div");
+        z.className = "zone";
+        z.dataset.idx = String(i);
+        z.addEventListener("click", ()=> penaltyShoot(i));
+        goalGrid.appendChild(z);
+      }
+    }
+
+    function penaltyStart(){
+      sClick();
+      const bet = Math.floor(Number(pBet.value || 0));
+      if(bet <= 0) return alert("Enter a valid bet.");
+      if(state.balance < bet) return alert("Not enough balance.");
+      setBalance(state.balance - bet);
+
+      penalty.active = true;
+      penalty.bet = bet;
+      penalty.goals = 0;
+      penalty.busy = false;
+      penaltyResetVisual();
+      penaltyUpdateUI();
+    }
+
+    function penaltyResetRound(){
+      sClick();
+      penalty.active = false;
+      penalty.bet = 0;
+      penalty.goals = 0;
+      penalty.busy = false;
+      penaltyResetVisual();
+      penaltyUpdateUI();
+    }
+
+    function penaltyCashOut(){
+      sClick();
+      if(!penalty.active || penalty.goals === 0 || penalty.busy) return;
+      const payout = Math.floor(penalty.bet * penalty.mult);
+      setBalance(state.balance + payout);
+      penalty.active = false;
+      penalty.busy = false;
+      penaltyUpdateUI();
+      showOverlay("win", `Penalty: +${formatMoney(payout)}`);
+    }
+
+    async function wait(ms){ return new Promise(r=>setTimeout(r, ms)); }
+
+    async function penaltyShoot(zoneIdx){
+      sClick();
+      if(!penalty.active || penalty.busy) return;
+
+      penalty.busy = true;
+      penaltyUpdateUI();
+
+      // ball goes to chosen zone (quick)
+      const tBall = zoneToTransform(zoneIdx);
+      ball.style.transform = `translate(-50%, -50%) translate(${tBall.x}px, ${tBall.y}px)`;
+
+      // suspense: 2 seconds
+      await wait(2000);
+
+      // decide save
+      const save = Math.random() < penaltySaveChance();
+      let keeperZone = zoneIdx;
+
+      if(save){
+        // keeper dives to same zone to save
+        keeperZone = zoneIdx;
+      }else{
+        // keeper dives to a different zone (or stays center sometimes)
+        const options = [];
+        for(let i=0;i<9;i++) if(i !== zoneIdx) options.push(i);
+        keeperZone = options[Math.floor(Math.random()*options.length)];
+      }
+
+      const tKeep = zoneToTransform(keeperZone);
+      keeper.style.transform = `translate(-50%, -50%) translate(${tKeep.x}px, ${tKeep.y}px)`;
+
+      await wait(450);
+
+      if(save){
+        // LOSE
+        sBoo();
+        const lost = penalty.bet;
+        penalty.active = false;
+        penalty.busy = false;
+        penaltyUpdateUI();
+        showOverlay("lose", `Penalty: Lost ${formatMoney(lost)}`);
+        // reset ball after a moment
+        await wait(450);
+        penaltyResetVisual();
+        return;
+      }
+
+      // GOAL
+      sCheer();
+      penalty.goals += 1;
+      penalty.busy = false;
+      penaltyUpdateUI();
+
+      // bring ball back for next shot (but keep keeper where he dived)
+      await wait(500);
+      ball.style.transform = "translate(-50%, -50%)";
+      // keep keeper position for a tiny bit then return to center
+      await wait(350);
+      keeper.style.transform = "translate(-50%, -50%)";
+    }
+
+    pStartBtn.addEventListener("click", penaltyStart);
+    pCashBtn.addEventListener("click", penaltyCashOut);
+    pResetBtn.addEventListener("click", penaltyResetRound);
+    penaltyBuildZones();
+
+    /***********************
+     * BLACKJACK (Split + Double)
+     ***********************/
+    const bjBet = $("bjBet");
+    const bjDealBtn = $("bjDealBtn");
+    const bjHitBtn = $("bjHitBtn");
+    const bjStandBtn = $("bjStandBtn");
+    const bjDoubleBtn = $("bjDoubleBtn");
+    const bjSplitBtn = $("bjSplitBtn");
+    const bjNewRoundBtn = $("bjNewRoundBtn");
+    const bjDealerCards = $("bjDealerCards");
+    const bjDealerTotal = $("bjDealerTotal");
+    const bjHandsWrap = $("bjHandsWrap");
+
+    // simplified infinite deck
+    const ranks = ["A","2","3","4","5","6","7","8","9","10","J","Q","K"];
+    function drawCard(){
+      const r = ranks[Math.floor(Math.random()*ranks.length)];
+      // suits are just visual
+      const suits = ["♠","♥","♦","♣"];
+      const s = suits[Math.floor(Math.random()*suits.length)];
+      return { r, s };
+    }
+    function cardValue(r){
+      if(r === "A") return 11;
+      if(r === "K" || r === "Q" || r === "J") return 10;
+      return Number(r);
+    }
+    function handTotals(cards){
+      // returns best total <=21 if possible, else smallest total
+      let total = 0;
+      let aces = 0;
+      for(const c of cards){
+        total += cardValue(c.r);
+        if(c.r === "A") aces++;
+      }
+      while(total > 21 && aces > 0){
+        total -= 10;
+        aces--;
+      }
+      return total;
+    }
+    function isBlackjack(cards){
+      return cards.length === 2 && handTotals(cards) === 21;
+    }
+    function renderCards(el, cards, hideSecond=false){
+      el.innerHTML = "";
+      cards.forEach((c, idx)=>{
+        const chip = document.createElement("div");
+        chip.className = "cardChip";
+        if(hideSecond && idx === 1){
+          chip.textContent = "🂠";
+        }else{
+          chip.textContent = `${c.r}${c.s}`;
+        }
+        el.appendChild(chip);
+      });
+    }
+
+    let bj = {
+      active:false,
+      bet:0,
+      dealer:[],
+      hands:[], // each: {cards:[], bet, done, doubled, busted, blackjack}
+      activeHandIdx:0,
+      canSplit:false,
+      splitUsed:false,
+      dealerHide:true
+    };
+
+    function bjResetUI(){
+      bjDealerCards.innerHTML = "";
+      bjHandsWrap.innerHTML = "";
+      bjDealerTotal.textContent = "0";
+      bjHitBtn.disabled = true;
+      bjStandBtn.disabled = true;
+      bjDoubleBtn.disabled = true;
+      bjSplitBtn.disabled = true;
+      bjNewRoundBtn.disabled = true;
+    }
+
+    function bjUpdateButtons(){
+      const hand = bj.hands[bj.activeHandIdx];
+      const inPlay = bj.active && hand && !hand.done;
+      bjHitBtn.disabled = !inPlay;
+      bjStandBtn.disabled = !inPlay;
+
+      // Double: only first action => cards length ==2 and not doubled
+      const canDouble = inPlay && hand.cards.length === 2 && !hand.doubled && state.balance >= hand.bet;
+      bjDoubleBtn.disabled = !canDouble;
+
+      // Split: only once, first action, same rank, not used
+      const canSplit = inPlay && !bj.splitUsed && hand.cards.length === 2 && hand.cards[0].r === hand.cards[1].r && state.balance >= hand.bet;
+      bjSplitBtn.disabled = !canSplit;
+
+      bjNewRoundBtn.disabled = bj.active; // enable only after round ends
+    }
+
+    function bjRenderHands(){
+      bjHandsWrap.innerHTML = "";
+      bj.hands.forEach((h, idx)=>{
+        const box = document.createElement("div");
+        box.className = "handBox" + (idx === bj.activeHandIdx && !h.done ? " handActive" : "");
+        const header = document.createElement("div");
+        header.className = "handHeader";
+        const title = document.createElement("div");
+        title.className = "handTitle";
+        title.textContent = `Player Hand ${idx+1}`;
+        const meta = document.createElement("div");
+        meta.className = "handMeta";
+        meta.textContent = `Bet: ${formatMoney(h.bet)} | Total: ${handTotals(h.cards)}${h.doubled ? " | Doubled" : ""}${h.done ? " | Done" : ""}`;
+        header.appendChild(title); header.appendChild(meta);
+
+        const row = document.createElement("div");
+        row.className = "cardsRow";
+        renderCards(row, h.cards, false);
+
+        box.appendChild(header);
+        box.appendChild(row);
+
+        bjHandsWrap.appendChild(box);
+      });
+    }
+
+    function bjRenderDealer(){
+      renderCards(bjDealerCards, bj.dealer, bj.dealerHide);
+      bjDealerTotal.textContent = bj.dealerHide ? String(cardValue(bj.dealer[0]?.r || "0")) : String(handTotals(bj.dealer));
+    }
+
+    function bjStart(){
+      sClick();
+      const bet = Math.floor(Number(bjBet.value || 0));
+      if(bet <= 0) return alert("Enter a valid bet.");
+      if(state.balance < bet) return alert("Not enough balance.");
+
+      setBalance(state.balance - bet);
+
+      bj.active = true;
+      bj.bet = bet;
+      bj.dealer = [drawCard(), drawCard()];
+      bj.dealerHide = true;
+      bj.splitUsed = false;
+
+      const playerCards = [drawCard(), drawCard()];
+      bj.hands = [{
+        cards: playerCards,
+        bet: bet,
+        done:false,
+        doubled:false
+      }];
+      bj.activeHandIdx = 0;
+
+      // Auto handle blackjack
+      bjRenderDealer();
+      bjRenderHands();
+
+      // if player blackjack, dealer reveals and settle immediately
+      if(isBlackjack(playerCards)){
+        bjFinishRound(true);
+        return;
+      }
+
+      bjUpdateButtons();
+    }
+
+    function bjNextHandOrDealer(){
+      // move to next unfinished hand
+      for(let i=0;i<bj.hands.length;i++){
+        if(!bj.hands[i].done){
+          bj.activeHandIdx = i;
+          bjRenderHands();
+          bjUpdateButtons();
+          return;
+        }
+      }
+      // all done -> dealer plays
+      bjDealerPlayAndSettle();
+    }
+
+    function bjHit(){
+      sClick();
+      const hand = bj.hands[bj.activeHandIdx];
+      if(!hand || hand.done) return;
+
+      hand.cards.push(drawCard());
+      const t = handTotals(hand.cards);
+      if(t > 21){
+        hand.done = true;
+      }
+      bjRenderHands();
+      bjUpdateButtons();
+      if(hand.done) bjNextHandOrDealer();
+    }
+
+    function bjStand(){
+      sClick();
+      const hand = bj.hands[bj.activeHandIdx];
+      if(!hand || hand.done) return;
+      hand.done = true;
+      bjRenderHands();
+      bjUpdateButtons();
+      bjNextHandOrDealer();
+    }
+
+    function bjDouble(){
+      sClick();
+      const hand = bj.hands[bj.activeHandIdx];
+      if(!hand || hand.done) return;
+      if(state.balance < hand.bet) return;
+
+      // take extra bet
+      setBalance(state.balance - hand.bet);
+      hand.bet *= 2;
+      hand.doubled = true;
+
+      // draw exactly one card and stand
+      hand.cards.push(drawCard());
+      hand.done = true;
+
+      bjRenderHands();
+      bjUpdateButtons();
+      bjNextHandOrDealer();
+    }
+
+    function bjSplit(){
+      sClick();
+      const hand = bj.hands[bj.activeHandIdx];
+      if(!hand || hand.done) return;
+      if(bj.splitUsed) return;
+      if(hand.cards.length !== 2) return;
+      if(hand.cards[0].r !== hand.cards[1].r) return;
+      if(state.balance < hand.bet) return;
+
+      // pay second bet
+      setBalance(state.balance - hand.bet);
+
+      bj.splitUsed = true;
+
+      const c1 = hand.cards[0];
+      const c2 = hand.cards[1];
+
+      // two hands, each gets one card + a new card
+      const h1 = { cards:[c1, drawCard()], bet:hand.bet, done:false, doubled:false };
+      const h2 = { cards:[c2, drawCard()], bet:hand.bet, done:false, doubled:false };
+
+      bj.hands = [h1, h2];
+      bj.activeHandIdx = 0;
+
+      bjRenderHands();
+      bjUpdateButtons();
+    }
+
+    function bjDealerPlayAndSettle(){
+      bj.dealerHide = false;
+      bjRenderDealer();
+
+      // dealer draws to 17+
+      while(handTotals(bj.dealer) < 17){
+        bj.dealer.push(drawCard());
+        bjRenderDealer();
+      }
+
+      const dealerTotal = handTotals(bj.dealer);
+      const dealerBust = dealerTotal > 21;
+
+      let netMsgParts = [];
+      let totalWin = 0;
+      let totalLose = 0;
+      let totalPush = 0;
+
+      for(const h of bj.hands){
+        const pt = handTotals(h.cards);
+        const bust = pt > 21;
+
+        if(bust){
+          totalLose += h.bet;
+          continue;
+        }
+
+        // blackjack payout (only for non-split? we'll allow anyway)
+        const pBJ = isBlackjack(h.cards);
+
+        if(dealerBust){
+          // player wins
+          let payout = h.bet * 2;
+          if(pBJ) payout = Math.floor(h.bet * 2.5); // win + 1.5x profit
+          setBalance(state.balance + payout);
+          totalWin += payout;
+          continue;
+        }
+
+        if(pBJ && !isBlackjack(bj.dealer)){
+          const payout = Math.floor(h.bet * 2.5);
+          setBalance(state.balance + payout);
+          totalWin += payout;
+          continue;
+        }
+
+        // compare totals
+        if(pt > dealerTotal){
+          const payout = h.bet * 2;
+          setBalance(state.balance + payout);
+          totalWin += payout;
+        }else if(pt < dealerTotal){
+          totalLose += h.bet;
+        }else{
+          // push: return bet
+          setBalance(state.balance + h.bet);
+          totalPush += h.bet;
+        }
+      }
+
+      bj.active = false;
+      bjUpdateButtons();
+      bjNewRoundBtn.disabled = false;
+
+      // overlay summary
+      if(totalWin > 0 && totalLose === 0){
+        showOverlay("win", `Blackjack: +${formatMoney(totalWin)}`);
+      }else if(totalWin === 0 && totalPush > 0 && totalLose === 0){
+        showOverlay("win", `Blackjack: Push (${formatMoney(totalPush)} returned)`);
+      }else if(totalWin > 0){
+        showOverlay("win", `Blackjack: W ${formatMoney(totalWin)} | L ${formatMoney(totalLose)} | P ${formatMoney(totalPush)}`);
+      }else{
+        showOverlay("lose", `Blackjack: Lost ${formatMoney(totalLose)}`);
+      }
+    }
+
+    function bjFinishRound(playerBlackjack=false){
+      // immediate settle on player blackjack
+      bj.dealerHide = false;
+      bjRenderDealer();
+
+      const playerHand = bj.hands[0];
+      const dealerBJ = isBlackjack(bj.dealer);
+      const playerBJ = isBlackjack(playerHand.cards);
+
+      bj.active = false;
+      bjUpdateButtons();
+      bjNewRoundBtn.disabled = false;
+
+      if(playerBJ && !dealerBJ){
+        const payout = Math.floor(playerHand.bet * 2.5);
+        setBalance(state.balance + payout);
+        showOverlay("win", `Blackjack: +${formatMoney(payout)} (Blackjack)`);
+        return;
+      }
+      if(playerBJ && dealerBJ){
+        // push
+        setBalance(state.balance + playerHand.bet);
+        showOverlay("win", `Blackjack: Push (${formatMoney(playerHand.bet)} returned)`);
+        return;
+      }
+      // otherwise normal flow
+      bjDealerPlayAndSettle();
+    }
+
+    bjDealBtn.addEventListener("click", bjStart);
+    bjHitBtn.addEventListener("click", bjHit);
+    bjStandBtn.addEventListener("click", bjStand);
+    bjDoubleBtn.addEventListener("click", bjDouble);
+    bjSplitBtn.addEventListener("click", bjSplit);
+    bjNewRoundBtn.addEventListener("click", ()=>{
+      sClick();
+      bjResetUI();
+    });
+
+    // init bj UI
+    bjResetUI();
+
+    /***********************
+     * INITIALIZE
+     ***********************/
+    function init(){
+      refreshTop();
+      updateClickerUI();
+      updateChickenUI();
+      minesBuildGrid(5);
+      minesUpdateUI();
+      penaltyUpdateUI();
+      showScreen("clicker");
+    }
+    init();
+
+    // Make sure user gesture unlocks audio on mobile
+    document.addEventListener("pointerdown", ()=>{ try{ ensureAudio(); }catch{} }, { once:true });
+  </script>
+</body>
+            </html>
